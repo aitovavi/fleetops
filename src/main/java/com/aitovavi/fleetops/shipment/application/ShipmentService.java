@@ -6,6 +6,8 @@ import com.aitovavi.fleetops.customer.infrastructure.CustomerRepository;
 import com.aitovavi.fleetops.shipment.domain.Shipment;
 import com.aitovavi.fleetops.shipment.domain.ShipmentStatus;
 import com.aitovavi.fleetops.shipment.infrastructure.ShipmentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +53,31 @@ public class ShipmentService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Shipment not found with id: " + id
                 ));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Shipment> getShipments(
+            ShipmentStatus status,
+            UUID customerId,
+            Pageable pageable
+    ) {
+        if (status != null && customerId != null) {
+            return shipmentRepository.findByStatusAndCustomerId(
+                    status,
+                    customerId,
+                    pageable
+            );
+        }
+
+        if (status != null) {
+            return shipmentRepository.findByStatus(status, pageable);
+        }
+
+        if (customerId != null) {
+            return shipmentRepository.findByCustomerId(customerId, pageable);
+        }
+
+        return shipmentRepository.findAll(pageable);
     }
 
     @Transactional

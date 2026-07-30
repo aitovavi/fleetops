@@ -1,9 +1,14 @@
 package com.aitovavi.fleetops.shipment.api;
 
+import com.aitovavi.fleetops.common.api.PageResponse;
 import com.aitovavi.fleetops.shipment.application.ShipmentService;
 import com.aitovavi.fleetops.shipment.domain.Shipment;
 import com.aitovavi.fleetops.shipment.domain.ShipmentStatus;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +42,23 @@ public class ShipmentController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ShipmentResponse.from(createdShipment));
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<ShipmentResponse>> getShipments(
+            @RequestParam(required = false) ShipmentStatus status,
+            @RequestParam(required = false) UUID customerId,
+            @PageableDefault(
+                    size = 10,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
+    ) {
+        Page<ShipmentResponse> shipments = shipmentService
+                .getShipments(status, customerId, pageable)
+                .map(ShipmentResponse::from);
+
+        return ResponseEntity.ok(PageResponse.from(shipments));
     }
 
     @GetMapping("/{id}")
