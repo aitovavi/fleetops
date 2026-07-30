@@ -6,6 +6,8 @@ import com.aitovavi.fleetops.shipment.domain.ShipmentStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.aitovavi.fleetops.shipment.api.ShipmentRequest;
+import com.aitovavi.fleetops.customer.domain.Customer;
 
 import java.util.UUID;
 
@@ -20,8 +22,13 @@ public class ShipmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Shipment> createShipment(@RequestBody Shipment shipment) {
-        Shipment created = shipmentService.createShipment(shipment);
+    public ResponseEntity<Shipment> createShipment(@RequestBody ShipmentRequest request) {
+        Shipment shipment = new Shipment();
+        shipment.setOriginCity(request.getOriginCity());
+        shipment.setDestinationCity(request.getDestinationCity());
+        shipment.setCargoDescription(request.getCargoDescription());
+
+        Shipment created = shipmentService.createShipment(shipment, request.getCustomerId());
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 

@@ -1,5 +1,7 @@
 package com.aitovavi.fleetops.shipment.application;
 
+import com.aitovavi.fleetops.customer.domain.Customer;
+import com.aitovavi.fleetops.customer.infrastructure.CustomerRepository;
 import com.aitovavi.fleetops.shipment.domain.Shipment;
 import com.aitovavi.fleetops.shipment.domain.ShipmentStatus;
 import com.aitovavi.fleetops.shipment.infrastructure.ShipmentRepository;
@@ -12,17 +14,27 @@ import java.util.UUID;
 public class ShipmentService {
 
     private final ShipmentRepository shipmentRepository;
+    private final CustomerRepository customerRepository;
 
-    public ShipmentService(ShipmentRepository shipmentRepository) {
+    public ShipmentService(ShipmentRepository shipmentRepository, CustomerRepository customerRepository) {
         this.shipmentRepository = shipmentRepository;
+        this.customerRepository = customerRepository;
     }
 
     @Transactional
-    public Shipment createShipment(Shipment shipment) {
-        // Проверяем, что город отправления и назначения не совпадают
+    public Shipment createShipment(Shipment shipment, UUID customerId) {
+        // Проверка городов
         if (shipment.getOriginCity().equalsIgnoreCase(shipment.getDestinationCity())) {
             throw new IllegalArgumentException("Origin city and destination city must be different");
         }
+
+        // Загрузка клиента, если передан customerId
+        if (customerId != null) {
+            Customer customer = customerRepository.findById(customerId)
+                    .orElseThrow(() -> new IllegalArgumentException("Customer not found with id: " + customerId));
+            shipment.setCustomer(customer);
+        }
+
         return shipmentRepository.save(shipment);
     }
 
