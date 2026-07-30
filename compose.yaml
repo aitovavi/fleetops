@@ -11,10 +11,37 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fleetops"]
+      test: ["CMD-SHELL", "pg_isready -U fleetops -d fleetops"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fleetops-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/fleetops
+      DB_USERNAME: fleetops
+      DB_PASSWORD: fleetops
+      SERVER_PORT: 18081
+
+      JWT_SECRET: fleetops-docker-development-secret-key-change-me-2026
+      JWT_ISSUER: fleetops
+      JWT_TTL_SECONDS: 3600
+
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin-change-me
+      USER_USERNAME: user
+      USER_PASSWORD: user-change-me
+    ports:
+      - "18081:18081"
+    restart: unless-stopped
 
 volumes:
   postgres_data:
