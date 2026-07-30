@@ -1,5 +1,7 @@
 package com.aitovavi.fleetops.customer.application;
 
+import com.aitovavi.fleetops.common.api.error.ConflictException;
+import com.aitovavi.fleetops.common.api.error.ResourceNotFoundException;
 import com.aitovavi.fleetops.customer.domain.Customer;
 import com.aitovavi.fleetops.customer.infrastructure.CustomerRepository;
 import org.springframework.stereotype.Service;
@@ -20,8 +22,11 @@ public class CustomerService {
     @Transactional
     public Customer createCustomer(Customer customer) {
         if (customerRepository.existsByEmail(customer.getEmail())) {
-            throw new IllegalArgumentException("Email already exists: " + customer.getEmail());
+            throw new ConflictException(
+                    "Customer with email already exists: " + customer.getEmail()
+            );
         }
+
         return customerRepository.save(customer);
     }
 
@@ -33,6 +38,8 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public Customer getCustomerById(UUID id) {
         return customerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Customer not found with id: " + id
+                ));
     }
 }

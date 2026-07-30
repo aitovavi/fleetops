@@ -1,5 +1,6 @@
 package com.aitovavi.fleetops.shipment.application;
 
+import com.aitovavi.fleetops.common.api.error.ResourceNotFoundException;
 import com.aitovavi.fleetops.customer.domain.Customer;
 import com.aitovavi.fleetops.customer.infrastructure.CustomerRepository;
 import com.aitovavi.fleetops.shipment.domain.Shipment;
@@ -16,24 +17,30 @@ public class ShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final CustomerRepository customerRepository;
 
-    public ShipmentService(ShipmentRepository shipmentRepository, CustomerRepository customerRepository) {
+    public ShipmentService(
+            ShipmentRepository shipmentRepository,
+            CustomerRepository customerRepository
+    ) {
         this.shipmentRepository = shipmentRepository;
         this.customerRepository = customerRepository;
     }
 
     @Transactional
     public Shipment createShipment(Shipment shipment, UUID customerId) {
-        // Проверка городов
-        if (shipment.getOriginCity().equalsIgnoreCase(shipment.getDestinationCity())) {
-            throw new IllegalArgumentException("Origin city and destination city must be different");
+        if (shipment.getOriginCity().equalsIgnoreCase(
+                shipment.getDestinationCity()
+        )) {
+            throw new IllegalArgumentException(
+                    "Origin city and destination city must be different"
+            );
         }
 
-        // Загрузка клиента, если передан customerId
-        if (customerId != null) {
-            Customer customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new IllegalArgumentException("Customer not found with id: " + customerId));
-            shipment.setCustomer(customer);
-        }
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Customer not found with id: " + customerId
+                ));
+
+        shipment.setCustomer(customer);
 
         return shipmentRepository.save(shipment);
     }
@@ -41,13 +48,21 @@ public class ShipmentService {
     @Transactional(readOnly = true)
     public Shipment getShipment(UUID id) {
         return shipmentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Shipment not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Shipment not found with id: " + id
+                ));
     }
 
     @Transactional
-    public void changeShipmentStatus(UUID id, ShipmentStatus newStatus) {
-        Shipment shipment = getShipment(id);
+    public void changeShipmentStatus(
+            UUID id,
+            ShipmentStatus newStatus
+    ) {
+        Shipment shipment = shipmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Shipment not found with id: " + id
+                ));
+
         shipment.changeStatus(newStatus);
-        shipmentRepository.save(shipment);
     }
 }

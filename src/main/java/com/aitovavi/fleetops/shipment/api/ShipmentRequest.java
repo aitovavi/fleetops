@@ -1,22 +1,26 @@
 package com.aitovavi.fleetops.shipment.api;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.util.UUID;
 
-public class ShipmentRequest {
-    private String originCity;
-    private String destinationCity;
-    private String cargoDescription;
-    private UUID customerId;
+public record ShipmentRequest(
 
-    public String getOriginCity() { return originCity; }
-    public void setOriginCity(String originCity) { this.originCity = originCity; }
+        @NotBlank(message = "Origin city is required")
+        @Size(max = 120, message = "Origin city must not exceed 120 characters")
+        String originCity,
 
-    public String getDestinationCity() { return destinationCity; }
-    public void setDestinationCity(String destinationCity) { this.destinationCity = destinationCity; }
+        @NotBlank(message = "Destination city is required")
+        @Size(max = 120, message = "Destination city must not exceed 120 characters")
+        String destinationCity,
 
-    public String getCargoDescription() { return cargoDescription; }
-    public void setCargoDescription(String cargoDescription) { this.cargoDescription = cargoDescription; }
+        @NotBlank(message = "Cargo description is required")
+        @Size(max = 500, message = "Cargo description must not exceed 500 characters")
+        String cargoDescription,
 
-    public UUID getCustomerId() { return customerId; }
-    public void setCustomerId(UUID customerId) { this.customerId = customerId; }
+        @NotNull(message = "Customer ID is required")
+        UUID customerId
+) {
 }
